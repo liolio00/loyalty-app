@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model CardType {
+  name CardType_name
+
+  @@ignore
+}
+
+model LoyaltyCard {
+  id        Int                  @id @default(autoincrement())
+  name      String
+  shopName  String
+  logoUrl   String?
+  notes     String?              @db.Text
+  cardType  LoyaltyCard_cardType
+  cardCode  String
+  userId    Int
+  createdAt DateTime             @default(now())
+  updatedAt DateTime
+  User      User                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+  shares    LoyaltyCardShare[]
+
+  @@index([userId], map: "LoyaltyCard_userId_fkey")
+}
+
+model User {
+  id               Int               @id @default(autoincrement())
+  email            String            @unique
+  firstName        String?
+  lastName         String?
+  password         String
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  lastLoginAt      DateTime?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime
+  LoyaltyCard      LoyaltyCard[]
+  sharedWithMe     LoyaltyCardShare[] @relation("SharedWith")
+  sharedByMe       LoyaltyCardShare[] @relation("SharedBy")
+}
+
+model LoyaltyCardShare {
+  id              Int         @id @default(autoincrement())
+  cardId          Int
+  sharedWith      Int
+  sharedBy        Int
+  createdAt       DateTime    @default(now())
+  card            LoyaltyCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  sharedWithUser  User        @relation("SharedWith", fields: [sharedWith], references: [id], onDelete: Cascade)
+  sharedByUser    User        @relation("SharedBy", fields: [sharedBy], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, sharedWith])
+  @@index([cardId])
+  @@index([sharedWith])
+  @@index([sharedBy])
+}
+
+enum CardType_name {
+  BARCODE
+  QRCODE
+}
+
+enum LoyaltyCard_cardType {
+  BARCODE
+  QRCODE
+}
