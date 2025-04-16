@@ -16,6 +16,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getLogoUrl } from '@/lib/utils/logoMapping';
+import { useRouter } from 'next/navigation';
 
 type LoyaltyCard = {
   id: string;
@@ -36,10 +37,11 @@ type LoyaltyCard = {
 };
 
 export default function Home() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [cards, setCards] = useState<LoyaltyCard[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filteredCards, setFilteredCards] = useState<LoyaltyCard[]>([]);
   const [selectedCard, setSelectedCard] = useState<LoyaltyCard | null>(null);
@@ -62,21 +64,24 @@ export default function Home() {
       const cardsData = Array.isArray(data.cards) ? data.cards : [];
       setCards(cardsData);
       setFilteredCards(cardsData);
-      setLoading(false);
+      setIsLoading(false);
     } catch (error) {
       console.error('Erreur lors du chargement des cartes:', error);
       setCards([]);
       setFilteredCards([]);
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      console.log('Utilisateur connecté, chargement des cartes');
-      fetchCards();
+    if (!loading) {
+      if (!user) {
+        router.push('/login');
+      } else {
+        setIsLoading(false);
+      }
     }
-  }, [user]);
+  }, [user, loading, router]);
 
   useEffect(() => {
     const filtered = cards.filter(card =>
@@ -146,8 +151,12 @@ export default function Home() {
     }
   }
 
-  if (loading) {
+  if (loading || isLoading) {
     return <SplashScreen />;
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
