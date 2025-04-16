@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
     try {
         // Supprimer le cookie d'authentification
         const cookieStore = cookies();
-        cookieStore.delete('auth_token');
+        cookieStore.delete('auth-token');
 
         return NextResponse.json({ message: 'Déconnexion réussie' });
     } catch (error) {

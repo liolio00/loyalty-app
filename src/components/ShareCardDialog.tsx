@@ -97,6 +97,8 @@ export function ShareCardDialog({ cards, onShareComplete }: ShareCardDialogProps
     };
 
     const toggleAllCards = () => {
+        if (!Array.isArray(cards)) return;
+
         if (selectedCards.size === cards.length) {
             // Si toutes les cartes sont déjà sélectionnées, on les désélectionne toutes
             setSelectedCards(new Set());
@@ -161,7 +163,7 @@ export function ShareCardDialog({ cards, onShareComplete }: ShareCardDialogProps
                         </div>
 
                         <div className="max-h-[300px] overflow-y-auto space-y-2 border border-gray-200 rounded-md p-3 bg-white shadow-sm">
-                            {cards.length === 0 ? (
+                            {!Array.isArray(cards) || cards.length === 0 ? (
                                 <div className="text-center py-4 text-gray-500">
                                     <AlertCircle className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                                     <p>Vous n'avez pas de cartes à partager</p>

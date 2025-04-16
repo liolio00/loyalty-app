@@ -6,11 +6,17 @@ import { ArrowLeftIcon, TrashIcon, QrCodeIcon, CameraIcon } from '@heroicons/rea
 import { Navigation } from '@/components/layout/Navigation';
 import { useForm } from 'react-hook-form';
 import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/library';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
 
 type FormData = {
     shopName: string;
-    cardCode: string;
     notes: string;
+    cardCode: string;
+    cardType: 'BARCODE' | 'QRCODE';
 };
 
 type LoyaltyCard = {
@@ -26,6 +32,7 @@ type LoyaltyCard = {
 export default function EditCard() {
     const params = useParams();
     const router = useRouter();
+    const { toast } = useToast();
     const [card, setCard] = useState<LoyaltyCard | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +59,7 @@ export default function EditCard() {
                     shopName: data.shopName,
                     cardCode: data.cardCode,
                     notes: data.notes || '',
+                    cardType: data.cardType,
                 });
                 setLoading(false);
             } catch (error) {
@@ -188,11 +196,7 @@ export default function EditCard() {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include', // Important pour envoyer les cookies
-                body: JSON.stringify({
-                    shopName: data.shopName,
-                    cardCode: data.cardCode,
-                    notes: data.notes || null
-                }),
+                body: JSON.stringify(data),
             });
 
             if (!response.ok) {
@@ -204,7 +208,11 @@ export default function EditCard() {
             router.push(`/cards/${params.id}`);
         } catch (error: any) {
             console.error('Erreur lors de la mise à jour de la carte:', error);
-            alert(error.message || 'Une erreur est survenue lors de la mise à jour de la carte');
+            toast({
+                variant: "destructive",
+                title: "Erreur",
+                description: error.message || 'Une erreur est survenue lors de la mise à jour de la carte'
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -250,56 +258,46 @@ export default function EditCard() {
                 <div className="p-4">
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                         <div>
-                            <label htmlFor="shopName" className="block text-sm font-medium text-gray-700 mb-1">
-                                Nom du magasin
-                            </label>
-                            <input
+                            <Label htmlFor="shopName">Nom du magasin</Label>
+                            <Input
                                 id="shopName"
-                                type="text"
-                                className={`input ${errors.shopName ? 'border-red-500' : ''}`}
                                 {...register('shopName', { required: 'Ce champ est requis' })}
                             />
                             {errors.shopName && <p className="text-red-500 text-xs mt-1">{errors.shopName.message}</p>}
                         </div>
 
                         <div>
-                            <label htmlFor="cardCode" className="block text-sm font-medium text-gray-700 mb-1">
-                                Code de la carte
-                            </label>
-                            <div className="relative">
-                                <input
-                                    id="cardCode"
-                                    type="text"
-                                    className={`input pr-10 ${errors.cardCode ? 'border-red-500' : ''}`}
-                                    {...register('cardCode', { required: 'Ce champ est requis' })}
-                                />
-                                <button
-                                    type="button"
-                                    className="absolute right-2 top-2 text-gray-500 hover:text-blue-600"
-                                    onClick={() => {
-                                        console.log("Bouton appareil photo cliqué, isScanning:", isScanning);
-                                        if (isScanning) {
-                                            stopScanner();
-                                        } else {
-                                            startScanner();
-                                        }
-                                    }}
-                                >
-                                    <CameraIcon className="w-6 h-6" />
-                                </button>
-                            </div>
-                            {errors.cardCode && <p className="text-red-500 text-xs mt-1">{errors.cardCode.message}</p>}
+                            <Label htmlFor="notes">Notes (optionnel)</Label>
+                            <Textarea
+                                id="notes"
+                                {...register('notes')}
+                            />
                         </div>
 
                         <div>
-                            <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
-                                Notes (optionnel)
-                            </label>
-                            <textarea
-                                id="notes"
-                                className="input min-h-[100px]"
-                                {...register('notes')}
-                            ></textarea>
+                            <Label htmlFor="cardCode">Code</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="cardCode"
+                                    {...register('cardCode', { required: 'Ce champ est requis' })}
+                                />
+                                <Button
+                                    type="button"
+                                    onClick={startScanner}
+                                    disabled={isScanning}
+                                >
+                                    Scanner
+                                </Button>
+                            </div>
+                            {isScanning && (
+                                <div className="mt-4">
+                                    <video
+                                        ref={videoRef}
+                                        className="w-full rounded-lg"
+                                        style={{ maxHeight: '70vh' }}
+                                    ></video>
+                                </div>
+                            )}
                         </div>
 
                         <div className="pt-4">

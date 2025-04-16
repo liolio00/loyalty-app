@@ -12,9 +12,10 @@ import { CreditCardIcon } from '@heroicons/react/24/outline';
 import { ShareCardDialog } from '@/components/ShareCardDialog';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { toast } from 'sonner';
+import { useToast } from "@/components/ui/use-toast"
 import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getLogoUrl } from '@/lib/utils/logoMapping';
 
 type LoyaltyCard = {
   id: string;
@@ -44,6 +45,7 @@ export default function Home() {
   const [selectedCard, setSelectedCard] = useState<LoyaltyCard | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [cardToDelete, setCardToDelete] = useState<LoyaltyCard | null>(null);
+  const { toast } = useToast()
 
   const fetchCards = async () => {
     try {
@@ -56,11 +58,15 @@ export default function Home() {
       const data = await res.json();
       console.log('Données reçues:', data);
 
-      setCards(data);
-      setFilteredCards(data);
+      // Extraire les cartes de la réponse
+      const cardsData = Array.isArray(data.cards) ? data.cards : [];
+      setCards(cardsData);
+      setFilteredCards(cardsData);
       setLoading(false);
     } catch (error) {
       console.error('Erreur lors du chargement des cartes:', error);
+      setCards([]);
+      setFilteredCards([]);
       setLoading(false);
     }
   };
@@ -100,15 +106,45 @@ export default function Home() {
         throw new Error('Erreur lors de la suppression de la carte');
       }
 
-      toast.success('Carte supprimée avec succès');
+      toast({
+        title: "Succès",
+        description: "La carte a été supprimée avec succès",
+        variant: "default",
+      });
       setShowDeleteConfirm(false);
       setCardToDelete(null);
       fetchCards();
     } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      toast.error('Erreur lors de la suppression de la carte');
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de la carte",
+        variant: "destructive",
+      });
     }
   };
+
+  const handleDelete = async (cardId: string) => {
+    try {
+      const response = await fetch(`/api/cards/${cardId}`, {
+        method: 'DELETE',
+      })
+      if (!response.ok) {
+        throw new Error('Failed to delete card')
+      }
+      toast({
+        title: "Succès",
+        description: "La carte a été supprimée avec succès",
+        variant: "default",
+      })
+      fetchCards()
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de la carte",
+        variant: "destructive",
+      })
+    }
+  }
 
   if (loading) {
     return <SplashScreen />;
@@ -172,15 +208,46 @@ export default function Home() {
                 onClick={() => setSelectedCard(card)}
               >
                 <div className="flex justify-between items-start mb-4">
-                  <div className="max-w-[70%]">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">{card.shopName}</h3>
-                    <div className="flex items-center gap-2">
-                      {card.cardSource === 'shared' && (
-                        <span className="text-sm text-blue-600 flex items-center gap-1 truncate">
-                          <Share2 className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">Partagée par {card.sharedByEmail}</span>
+                  <div className="flex items-center gap-3 max-w-[70%]">
+                    <div
+                      className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-100"
+                    >
+                      {card.logoUrl ? (
+                        <Image
+                          src={card.logoUrl}
+                          alt={`Logo ${card.shopName}`}
+                          width={48}
+                          height={48}
+                          className="object-cover"
+                          onError={(e) => {
+                            // En cas d'erreur de chargement, afficher l'initiale
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              const initial = document.createElement('span');
+                              initial.className = 'text-lg font-semibold text-gray-600';
+                              initial.textContent = card.shopName.charAt(0).toUpperCase();
+                              parent.appendChild(initial);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <span className="text-lg font-semibold text-gray-600">
+                          {card.shopName.charAt(0).toUpperCase()}
                         </span>
                       )}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">{card.shopName}</h3>
+                      <div className="flex items-center gap-2">
+                        {card.cardSource === 'shared' && (
+                          <span className="text-sm text-blue-600 flex items-center gap-1 truncate">
+                            <Share2 className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">Partagée par {card.sharedByEmail}</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex space-x-2 flex-shrink-0">

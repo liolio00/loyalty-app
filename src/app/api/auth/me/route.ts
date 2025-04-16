@@ -3,6 +3,9 @@ import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
+// Indiquer à Next.js que cette route est dynamique
+export const dynamic = 'force-dynamic';
+
 // Créer une instance singleton de PrismaClient
 const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined;
@@ -20,7 +23,7 @@ export async function GET(request: NextRequest) {
 
         // Récupérer le token d'authentification du cookie
         const cookieStore = cookies();
-        const token = cookieStore.get('auth_token')?.value;
+        const token = cookieStore.get('auth-token')?.value;
 
         if (!token) {
             console.log('Aucun token trouvé');
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
         // Récupérer les informations de l'utilisateur
         console.log('Récupération des informations utilisateur:', decoded.userId);
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId },
+            where: { id: parseInt(decoded.userId, 10) },
         });
 
         if (!user || !user.isActive) {

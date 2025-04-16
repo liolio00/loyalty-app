@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -11,7 +11,7 @@ type ResetPasswordFormData = {
     confirmPassword: string;
 };
 
-export default function ResetPassword() {
+function ResetPasswordContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
@@ -49,19 +49,12 @@ export default function ResetPassword() {
 
     if (!token) {
         return (
-            <div className="min-h-screen flex flex-col bg-gradient-to-b from-light-blue to-cream p-4">
-                <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full py-8">
-                    <div className="card text-center">
-                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </div>
-                        <h2 className="text-xl font-semibold mb-2">Lien invalide</h2>
-                        <p className="text-gray-600 mb-6">
-                            Ce lien de réinitialisation de mot de passe est invalide ou a expiré.
-                        </p>
-                        <Link href="/forgot-password" className="btn-primary block w-full">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-light-blue to-cream px-4">
+                <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold text-blue mb-2">Token invalide</h2>
+                        <p className="text-gray-600 mb-4">Le lien de réinitialisation de mot de passe est invalide ou a expiré.</p>
+                        <Link href="/forgot-password" className="text-blue hover:underline">
                             Demander un nouveau lien
                         </Link>
                     </div>
@@ -71,13 +64,11 @@ export default function ResetPassword() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-b from-light-blue to-cream p-4">
-            <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full py-8">
-                <div className="mb-6 text-center">
-                    <h1 className="text-2xl font-bold text-blue">Réinitialiser le mot de passe</h1>
-                    <p className="text-gray-600 mt-1">
-                        Créez un nouveau mot de passe pour votre compte
-                    </p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-light-blue to-cream px-4">
+            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
+                <div className="text-center">
+                    <h2 className="text-3xl font-bold text-blue mb-2">Réinitialiser le mot de passe</h2>
+                    <p className="text-gray-600">Entrez votre nouveau mot de passe</p>
                 </div>
 
                 {error && (
@@ -149,5 +140,17 @@ export default function ResetPassword() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ResetPassword() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-light-blue to-cream">
+                <div className="w-8 h-8 border-4 border-blue border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        }>
+            <ResetPasswordContent />
+        </Suspense>
     );
 } 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
@@ -110,18 +110,18 @@ export async function POST(request: NextRequest) {
         console.log('Création du token JWT');
         const token = jwt.sign(
             { userId: user.id, email: user.email },
-            process.env.JWT_SECRET || 'default_secret',
-            { expiresIn: process.env.JWT_EXPIRE || '7d' }
+            process.env.JWT_SECRET || 'default-secret-key',
+            { expiresIn: '24h' }
         );
 
         // Définir le cookie avec le token
         console.log('Définition du cookie');
         const cookieStore = cookies();
-        cookieStore.set('auth_token', token, {
+        cookieStore.set('auth-token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 7 * 24 * 60 * 60, // 7 jours en secondes
-            path: '/',
+            sameSite: 'strict',
+            maxAge: 86400, // 24 heures
         });
 
         // Renvoyer les informations utilisateur sans le mot de passe

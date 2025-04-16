@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Récupérer le token d'authentification du cookie
-    const token = request.cookies.get('auth_token')?.value;
+    const token = request.cookies.get('auth-token')?.value;
 
     // Si aucun token n'est trouvé
     if (!token) {

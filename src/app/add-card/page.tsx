@@ -130,7 +130,6 @@ export default function AddCard() {
                         // Liste des formats de QR codes
                         const qrFormats = [
                             BarcodeFormat.QR_CODE,
-                            BarcodeFormat.MICRO_QR_CODE,
                             BarcodeFormat.AZTEC,
                             BarcodeFormat.DATA_MATRIX
                         ];
@@ -233,7 +232,7 @@ export default function AddCard() {
         try {
             // Déterminer le type de carte
             let cardType = 'BARCODE';
-            if (format.includes('QR') || qrFormats.includes(format)) {
+            if (format.includes('QR') || format === 'AZTEC' || format === 'DATA_MATRIX') {
                 cardType = 'QRCODE';
             }
 

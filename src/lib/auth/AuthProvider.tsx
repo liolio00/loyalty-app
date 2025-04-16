@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
 type User = {
-    id: number;
+    id: string;
     email: string;
     firstName?: string;
     lastName?: string;
@@ -82,6 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
             const userData = await res.json();
             setUser(userData.user);
+            // Redirection directe vers la page d'accueil
             router.push('/');
         } catch (error) {
             console.error('Erreur lors de la connexion:', error);
@@ -158,8 +159,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             // Attendre un court instant avant la redirection
             await new Promise(resolve => setTimeout(resolve, 500));
 
-            // Rediriger vers la page des cartes
-            router.push('/cards');
+            // Rediriger vers la page d'accueil
+            router.push('/');
         } catch (error) {
             console.error('Erreur lors de l\'inscription:', error);
             throw error;

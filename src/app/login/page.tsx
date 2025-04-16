@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -11,7 +11,7 @@ type LoginFormData = {
     password: string;
 };
 
-export default function Login() {
+function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { login } = useAuth();
@@ -32,7 +32,7 @@ export default function Login() {
 
         try {
             await login(email, password);
-            router.push('/');
+            // La redirection est gérée par l'AuthProvider
         } catch (err) {
             setError('Email ou mot de passe incorrect');
         } finally {
@@ -144,5 +144,17 @@ export default function Login() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function Login() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-light-blue to-cream">
+                <div className="w-8 h-8 border-4 border-blue border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }

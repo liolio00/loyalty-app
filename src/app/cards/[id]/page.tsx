@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 // Pour les codes-barres et QR codes
 import JsBarcode from 'jsbarcode';
-import { QRCode } from 'react-qrcode-logo';
+import { QRCodeSVG } from 'qrcode.react';
 
 type LoyaltyCard = {
     id: number;
@@ -118,12 +118,12 @@ export default function CardDetails() {
                             </div>
                         ) : (
                             <div className="w-full flex flex-col items-center">
-                                <QRCode
+                                <QRCodeSVG
                                     value={card.cardCode}
                                     size={300}
                                     bgColor="#FFFFFF"
                                     fgColor="#000000"
-                                    qrStyle="dots"
+                                    level="H"
                                 />
                             </div>
                         )}
